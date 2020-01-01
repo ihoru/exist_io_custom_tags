@@ -22,6 +22,7 @@ env.bak/
 venv.bak/
 
 # Custom
+/credentials.json
 /local_settings.py
 /data.db
 /download.out

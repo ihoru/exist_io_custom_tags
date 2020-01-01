@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import date, timedelta, datetime
 from zipfile import ZipFile
 
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 import settings
@@ -65,7 +66,8 @@ def main():
     db_filename = 'data.db'
     days = 5
 
-    service = build('drive', 'v3')
+    credentials = Credentials.from_service_account_file('credentials.json')
+    service = build('drive', 'v3', credentials=credentials)
     download_file(service, settings.file_id, filename)
     unzip(filename, db_filename)
     raw_data = collect_data(db_filename, days)
