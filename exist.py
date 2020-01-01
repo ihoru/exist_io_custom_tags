@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+import logging
 
 import requests
 
 import settings
 
+logger = logging.getLogger(__name__)
 api_version = 1
 base_url = 'https://exist.io/api/{}/'.format(api_version)
 
@@ -16,11 +18,9 @@ def request(method, path, **kwargs):
         'Authorization': 'Bearer ' + settings.access_token,
     })
     url = base_url + path
-    print('-' * 100)
-    print(method, url)
-    print(kwargs)
+    logger.debug('request {} {}'.format(method, url))
     response = requests.request(method, url, **kwargs)
-    print(response.text)
+    logger.debug('status: {}'.format(response.status_code))
     return response
 
 

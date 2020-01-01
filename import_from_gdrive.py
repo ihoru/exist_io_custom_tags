@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import logging
 import shutil
 import sqlite3
 from collections import defaultdict
@@ -9,8 +9,8 @@ from zipfile import ZipFile
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
+import exist
 import settings
-from exist import post
 
 
 def download_file(service, file_id, filename):
@@ -76,8 +76,15 @@ def main():
         for d, tags in raw_data.items()
         for tag in tags
     ]
-    post('/attributes/custom/append/', json=data)
+    exist.post('/attributes/custom/append/', json=data)
 
 
 if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
+    args = parser.parse_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
     main()
