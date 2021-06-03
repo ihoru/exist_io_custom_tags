@@ -3,9 +3,10 @@ import logging
 import shutil
 import sqlite3
 from collections import defaultdict
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 from zipfile import ZipFile
 
+import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
@@ -13,7 +14,7 @@ import exist
 import settings
 
 
-def download_file(service, file_id, filename):
+def download_gdrive_file(service, file_id, filename):
     content = service.files().get_media(fileId=file_id).execute()
     with open(filename, 'wb') as f:
         f.write(content)
@@ -64,11 +65,18 @@ def collect_data(db_filename, days):
 def main():
     filename = 'download.out'
     db_filename = 'data.db'
-    days = 5
+    days = 7
 
-    credentials = Credentials.from_service_account_file('credentials.json')
-    service = build('drive', 'v3', credentials=credentials)
-    download_file(service, settings.file_id, filename)
+    if settings.file_url:
+        response = requests.get(settings.file_url)
+        response.raise_for_status()
+        with open(filename, 'wb') as f:
+            f.write(response.content)
+    else:
+        assert settings.file_id
+        credentials = Credentials.from_service_account_file('credentials.json')
+        service = build('drive', 'v3', credentials=credentials)
+        download_gdrive_file(service, settings.file_id, filename)
     unzip(filename, db_filename)
     raw_data = collect_data(db_filename, days)
     data = [

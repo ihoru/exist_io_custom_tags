@@ -5,4 +5,4 @@
 
 DIR=`dirname $0`;
 cd ${DIR}/..;
-virtualenv -p python3.6 ENV;
+virtualenv -p python3.8 ENV;
