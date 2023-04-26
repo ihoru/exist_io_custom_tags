@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from exist import post
+from exist import *
 
 # get('/users/$self/today/')
 # params = dict(
@@ -36,4 +36,5 @@ from exist import post
 data = [
     dict(value='good_meditate', date='2019-12-31'),
 ]
-post('/attributes/custom/append/', json=data)
+# post('/attributes/custom/append/', json=data)
+print(get('/attributes/with-values/').text)
