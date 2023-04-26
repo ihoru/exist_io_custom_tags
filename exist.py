@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 api_version = 2
 base_url = 'https://exist.io/api/{}/'.format(api_version)
 
+LIMIT_MAXIMUM_OBJECTS_PER_REQUEST = 35
+
 
 def request(method, path, **kwargs):
     method = method.upper()
@@ -20,9 +22,13 @@ def request(method, path, **kwargs):
     logger.debug('request {} {}'.format(method, url))
     response = requests.request(method, url, **kwargs)
     logger.debug('status: {}'.format(response.status_code))
-    failed = response.json().get('failed')
+    result = response.json()
+    detail = result.get('detail')
+    if detail:
+        logger.error(f'error with detail: {detail} in request "{path}"')
+    failed = result.get('failed')
     if failed:
-        logger.error('failed: {} in request "{}"'.format(failed, path))
+        logger.error(f'failed: {failed} in request "{path}"')
     return response
 
 

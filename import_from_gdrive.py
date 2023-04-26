@@ -71,13 +71,15 @@ def collect_data(db_filename, days):
 
 def acquire(tags):
     tags = list(tags)
-    sorted(tags)
-    print('acquire tags: ', tags)
-    result = exist.post('/attributes/acquire/', json=[
-        dict(name=tag)
-        for tag in tags
-    ]).json()
-    failed = result.get('failed')
+    tags = sorted(tags)
+    print(f'acquire {len(tags)} tags: {tags}')
+    failed = []
+    for chunk in chunks(tags, exist.LIMIT_MAXIMUM_OBJECTS_PER_REQUEST):
+        result = exist.post('/attributes/acquire/', json=[
+            dict(name=tag)
+            for tag in chunk
+        ]).json()
+        failed.extend(result.get('failed') or [])
     if not failed:
         return
     create_tags = []
@@ -86,7 +88,7 @@ def acquire(tags):
             create_tags.append(element['name'])
     if not create_tags:
         return
-    print('creating tags:', create_tags)
+    print(f'creating {len(create_tags)} tags: {create_tags}')
     exist.post('/attributes/create/', json=[
         dict(
             name=tag,
@@ -99,10 +101,9 @@ def acquire(tags):
     ])
 
 
-def main():
+def main(days: int):
     filename = 'download.out'
     db_filename = 'data.db'
-    days = 10
 
     if settings.file_url:
         response = requests.get(settings.file_url)
@@ -123,7 +124,7 @@ def main():
             unique_tags.add(tag)
             data.append(dict(name=tag, date=d, value=1))
     acquire(unique_tags)
-    for chunk in chunks(data, 35):  # there's a limit
+    for chunk in chunks(data, exist.LIMIT_MAXIMUM_OBJECTS_PER_REQUEST):  # there's a limit
         exist.post('/attributes/update/', json=chunk)
 
 
@@ -131,8 +132,10 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
+    parser.add_argument('--days', help='How many days to process', default=10, type=int)
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
-    main()
+    assert args.days >= 1, 'Should be at least 1 day to process'
+    main(args.days)
