@@ -121,6 +121,7 @@ def main(days: int):
     data = []
     for d, tags in raw_data.items():
         for tag in tags:
+            tag = tag.strip().strip('-')
             unique_tags.add(tag)
             data.append(dict(name=tag, date=d, value=1))
     acquire(unique_tags)
