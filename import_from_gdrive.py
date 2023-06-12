@@ -101,6 +101,17 @@ def acquire(tags):
     ])
 
 
+def get_skip_tags():
+    response = requests.get(
+        'https://habist.iho.su/acquired_tags/',
+        headers=dict(
+            Authorization=f'Token {settings.ACQUIRED_TAGS_SECRET}',
+        ),
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def main(days: int):
     filename = 'download.out'
     db_filename = 'data.db'
@@ -118,10 +129,13 @@ def main(days: int):
     unzip(filename, db_filename)
     raw_data = collect_data(db_filename, days)
     unique_tags = set()
+    skip_tags = get_skip_tags()
     data = []
     for d, tags in raw_data.items():
         for tag in tags:
-            tag = tag.strip().strip('-')
+            tag = tag.strip().strip('-').replace(' ', '_').lower()
+            if tag in skip_tags:
+                continue
             unique_tags.add(tag)
             data.append(dict(name=tag, date=d, value=1))
     acquire(unique_tags)
