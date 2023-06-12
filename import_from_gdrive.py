@@ -105,7 +105,7 @@ def get_skip_tags():
     response = requests.get(
         'https://habist.iho.su/acquired_tags/',
         headers=dict(
-            Authorization=f'Token {settings.ACQUIRED_TAGS_SECRET}',
+            Authorization=f'Token {settings.HABIST_ACQUIRED_TAGS_TOKEN}',
         ),
     )
     response.raise_for_status()
